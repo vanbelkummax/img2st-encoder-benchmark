@@ -118,6 +118,7 @@ This repo lets you **inspect the LOOCV results and regenerate the figures**. Tra
 | **Resolution** | 8μm bins, 32×32 grid per 448px patch |
 | **Decoder** | UNet from [Img2ST-Net](https://doi.org/10.1117/1.JMI.12.6.061410) |
 | **Training** | 200 epochs, MSE loss, LOOCV |
+| **Normalization** | Z-score per gene (negative = below average) |
 | **Metrics** | PCC, [SSIM-ST](https://doi.org/10.1117/1.JMI.12.6.061410) |
 
 ### Encoders
