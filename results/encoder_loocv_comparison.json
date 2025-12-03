@@ -1,0 +1,129 @@
+{
+  "title": "Fair Encoder Comparison - Complete LOOCV Results",
+  "date": "2025-12-03",
+  "description": "Complete 2x2 matrix comparing frozen vs fine-tuned encoders for Img2ST-Net spatial transcriptomics prediction",
+  "summary": {
+    "DenseNet": {"frozen": 0.306, "finetuned": 0.342, "random_init": 0.070},
+    "Virchow2": {"frozen": 0.352, "finetuned": null},
+    "UNI2-h": {"frozen": 0.349, "finetuned": null},
+    "H-optimus-0": {"frozen": 0.309, "finetuned": null}
+  },
+  "validation": {
+    "zero_shot_pcc": -0.004,
+    "note": "Zero-shot (no decoder training) confirms ~0 baseline. All frozen encoder results use identical decoder training."
+  },
+  "methodology": {
+    "cross_validation": "Leave-One-Out CV (LOOCV) across 3 CRC patients (P1, P2, P5)",
+    "training_epochs": 200,
+    "batch_size": 64,
+    "loss": "MSE (lambda=0, no contrastive loss)",
+    "model_selection": "Best epoch by validation MSE",
+    "resolution": "8um bins (32x32 grid per 448px patch)"
+  },
+  "results": {
+    "densenet_frozen": {
+      "encoder": "DenseNet121",
+      "frozen": true,
+      "pearson_r": {"mean": 0.306, "std": 0.012},
+      "spearman_rho": {"mean": 0.282, "std": 0.039},
+      "ssim_st": {"mean": 0.300, "std": 0.017},
+      "mse": {"mean": 0.563, "std": 0.010},
+      "fold_results": {
+        "test_P1": {"pearson_r": 0.294, "mse": 0.556},
+        "test_P2": {"pearson_r": 0.301, "mse": 0.556},
+        "test_P5": {"pearson_r": 0.322, "mse": 0.578}
+      },
+      "weights_path": "weights/densenet_frozen_loocv/loocv_lambda0/"
+    },
+    "densenet_finetuned": {
+      "encoder": "DenseNet121",
+      "frozen": false,
+      "pearson_r": {"mean": 0.342, "std": 0.019},
+      "spearman_rho": {"mean": 0.334, "std": 0.032},
+      "ssim_st": {"mean": 0.339, "std": 0.023},
+      "mse": {"mean": 0.547, "std": 0.005},
+      "fold_results": {
+        "test_P1": {"pearson_r": 0.332, "mse": 0.541},
+        "test_P2": {"pearson_r": 0.325, "mse": 0.548},
+        "test_P5": {"pearson_r": 0.369, "mse": 0.554}
+      },
+      "weights_path": "/mnt/x/img2st_rotation_demo/results/loocv_lambda_ablation/lambda0_200epochs/"
+    },
+    "virchow2_frozen": {
+      "encoder": "Virchow2",
+      "frozen": true,
+      "pearson_r": {"mean": 0.352, "std": 0.011},
+      "spearman_rho": {"mean": 0.342, "std": 0.018},
+      "ssim_st": {"mean": 0.344, "std": 0.012},
+      "mse": {"mean": 0.548, "std": 0.011},
+      "fold_results": {
+        "test_P1": {"pearson_r": 0.347, "mse": 0.546},
+        "test_P2": {"pearson_r": 0.341, "mse": 0.536},
+        "test_P5": {"pearson_r": 0.368, "mse": 0.562}
+      },
+      "weights_path": "weights/virchow2_frozen_loocv/"
+    },
+    "uni2h_frozen": {
+      "encoder": "UNI2-h",
+      "frozen": true,
+      "pearson_r": {"mean": 0.349, "std": 0.016},
+      "spearman_rho": {"mean": 0.319, "std": 0.022},
+      "ssim_st": {"mean": 0.338, "std": 0.015},
+      "mse": {"mean": 0.550, "std": 0.007},
+      "fold_results": {
+        "test_P1": {"pearson_r": 0.333, "mse": 0.552},
+        "test_P2": {"pearson_r": 0.344, "mse": 0.541},
+        "test_P5": {"pearson_r": 0.370, "mse": 0.557}
+      },
+      "weights_path": "weights/uni2h_frozen_loocv/loocv_lambda025/"
+    },
+    "h_optimus_frozen": {
+      "encoder": "H-optimus-0",
+      "frozen": true,
+      "pearson_r": {"mean": 0.309, "std": 0.015},
+      "spearman_rho": {"mean": 0.280, "std": 0.029},
+      "ssim_st": {"mean": 0.297, "std": 0.017},
+      "mse": {"mean": 0.569, "std": 0.008},
+      "fold_results": {
+        "test_P1": {"pearson_r": 0.293, "mse": 0.569},
+        "test_P2": {"pearson_r": 0.306, "mse": 0.559},
+        "test_P5": {"pearson_r": 0.329, "mse": 0.579}
+      },
+      "weights_path": "weights/loocv/h_optimus_0_lambda0/",
+      "notes": "Fold test_P2 stopped early at epoch 101/200"
+    }
+  },
+  "summary_table": {
+    "headers": ["Encoder", "Frozen PCC", "Fine-tuned PCC"],
+    "rows": [
+      ["DenseNet121", "0.306 +/- 0.012", "0.342 +/- 0.019"],
+      ["Virchow2", "0.352 +/- 0.011", "N/A"],
+      ["UNI2-h", "0.349 +/- 0.016", "N/A"],
+      ["H-optimus-0", "0.309 +/- 0.015", "N/A"]
+    ]
+  },
+  "key_comparisons": {
+    "finetuning_benefit_densenet": {
+      "description": "Effect of fine-tuning on DenseNet encoder",
+      "frozen_pcc": 0.306,
+      "finetuned_pcc": 0.342,
+      "absolute_gain": 0.036,
+      "relative_gain_percent": 11.8
+    },
+    "frozen_fm_vs_frozen_densenet": {
+      "description": "Fair comparison: frozen foundation models vs frozen DenseNet",
+      "best_fm_pcc": 0.352,
+      "densenet_pcc": 0.306,
+      "absolute_gain": 0.046,
+      "relative_gain_percent": 15.0
+    },
+    "frozen_fm_vs_finetuned_densenet": {
+      "description": "Frozen foundation models vs fine-tuned DenseNet",
+      "best_fm_pcc": 0.352,
+      "finetuned_densenet_pcc": 0.342,
+      "absolute_gain": 0.010,
+      "relative_gain_percent": 2.9,
+      "interpretation": "Frozen FMs outperform fine-tuned DenseNet without task-specific training"
+    }
+  }
+}
