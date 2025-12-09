@@ -1,0 +1,96 @@
+# Encoder configurations for H&E → ST prediction
+# Each encoder maps 224x224 RGB patches to embedding vectors
+
+encoders:
+  # Baseline: ImageNet-pretrained DenseNet121
+  densenet_imagenet:
+    name: "DenseNet121-ImageNet"
+    source: "torchvision"
+    model_name: "densenet121"
+    embed_dim: 1024
+    input_size: 224
+    weights: "IMAGENET1K_V1"
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    notes: "Current baseline, r≈0.91 for top genes"
+
+  # Pathology foundation model: UNI (MahmoodLab)
+  uni:
+    name: "UNI"
+    source: "huggingface"
+    model_name: "MahmoodLab/UNI"
+    embed_dim: 1024
+    input_size: 224
+    weights: "hf_hub"
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    notes: "ViT-L/16 trained on 100M+ pathology images"
+    requires_auth: true
+
+  # Pathology foundation model: Virchow (Paige AI)
+  virchow:
+    name: "Virchow"
+    source: "huggingface"
+    model_name: "paige-ai/Virchow"
+    embed_dim: 1280
+    input_size: 224
+    weights: "hf_hub"
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    notes: "ViT-H/14 trained on 1.5M WSIs"
+    requires_auth: true
+
+  # Pathology foundation model: Virchow2 (Paige AI)
+  virchow2:
+    name: "Virchow2"
+    source: "huggingface"
+    model_name: "paige-ai/Virchow2"
+    embed_dim: 1280
+    input_size: 224
+    weights: "hf_hub"
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    notes: "Updated Virchow with improved training"
+    requires_auth: true
+
+  # Microsoft: Prov-GigaPath
+  gigapath:
+    name: "Prov-GigaPath"
+    source: "huggingface"
+    model_name: "prov-gigapath/prov-gigapath"
+    embed_dim: 1536
+    input_size: 256
+    weights: "hf_hub"
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    notes: "ViT-G trained on 1.3B tiles from 170k WSIs"
+    requires_auth: true
+
+  # Fallback: DINOv2 (no auth required)
+  dinov2_giant:
+    name: "DINOv2-giant"
+    source: "torch_hub"
+    model_name: "dinov2_vitg14"
+    embed_dim: 1536
+    input_size: 224
+    weights: "default"
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    notes: "Fallback if pathology FMs unavailable"
+    requires_auth: false
+
+# Default encoder for experiments
+default_encoder: "densenet_imagenet"
+
+# Comparison order for benchmarking
+benchmark_order:
+  - densenet_imagenet  # Baseline
+  - uni                # Primary pathology FM
+  - virchow            # Secondary pathology FM
+  - dinov2_giant       # Fallback

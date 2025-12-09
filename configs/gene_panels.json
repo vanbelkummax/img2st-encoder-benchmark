@@ -1,0 +1,137 @@
+{
+  "description": "Gene panel definitions for Img2ST-Net evaluation",
+  "version": "1.0",
+  "created": "2025-11-25",
+  "reference": "DEVELOPMENT_ROADMAP.md Phase 1.3",
+
+  "panels": {
+    "expression_50": {
+      "name": "Expression Panel (Top 50 Mean)",
+      "description": "Top 50 genes by mean expression across all slides. Current default panel.",
+      "selection_method": "top_k_mean_expression",
+      "size": 50,
+      "genes": [
+        "IGKC", "MT-ATP6", "MT-ND4", "MT-CO3", "MT-CO2", "MT-CYB", "TMSB4X",
+        "MT-ND3", "MT-ND4L", "IGHG1", "MT-ND2", "FTH1", "CEACAM5", "PIGR",
+        "ACTB", "TMSB10", "COL3A1", "MUC12", "CEACAM6", "JCHAIN", "EPCAM",
+        "LCN2", "COL1A1", "MT-ND1", "VIM", "B2M", "OAZ1", "PHGR1", "S100A6",
+        "FTL", "KRT8", "EEF1G", "PYGB", "IGHA1", "TSPAN8", "S100A10", "CD24",
+        "CST3", "IGHM", "COL1A2", "TAGLN", "DES", "OLFM4", "MT-ND5", "CFL1",
+        "SYNGR2", "HSPA8", "CD74", "FCGBP", "LGALS3"
+      ],
+      "note": "This is the current production panel used in training"
+    },
+
+    "crc_immune": {
+      "name": "CRC/Immune Panel",
+      "description": "Curated markers for colorectal cancer and immune cells - biologically interpretable",
+      "selection_method": "literature_curated",
+      "size": 35,
+      "categories": {
+        "epithelial": {
+          "description": "Epithelial cell markers",
+          "genes": ["EPCAM", "KRT8", "KRT18", "KRT19", "KRT20", "CDH1", "MUC2", "MUC12"]
+        },
+        "stromal": {
+          "description": "Stromal/fibroblast markers",
+          "genes": ["VIM", "DES", "ACTA2", "COL1A1", "COL1A2", "COL3A1", "FAP", "TAGLN"]
+        },
+        "immune_tcell": {
+          "description": "T-cell markers",
+          "genes": ["CD3D", "CD3E", "CD4", "CD8A", "FOXP3"]
+        },
+        "immune_myeloid": {
+          "description": "Myeloid/macrophage markers",
+          "genes": ["CD68", "CD163", "CD14", "ITGAM"]
+        },
+        "immune_bcell": {
+          "description": "B-cell/plasma cell markers",
+          "genes": ["CD19", "CD79A", "IGKC", "IGHG1", "IGHA1", "JCHAIN"]
+        },
+        "crc_markers": {
+          "description": "Colorectal cancer-associated markers",
+          "genes": ["CEACAM5", "CEACAM6", "REG4", "FABP1", "CA2", "LCN2", "OLFM4"]
+        },
+        "stem_cell": {
+          "description": "Intestinal stem cell markers",
+          "genes": ["LGR5", "OLFM4", "ASCL2"]
+        }
+      },
+      "genes_flat": [
+        "EPCAM", "KRT8", "KRT18", "KRT19", "KRT20", "CDH1", "MUC2", "MUC12",
+        "VIM", "DES", "ACTA2", "COL1A1", "COL1A2", "COL3A1", "FAP", "TAGLN",
+        "CD3D", "CD3E", "CD4", "CD8A", "FOXP3",
+        "CD68", "CD163", "CD14", "ITGAM",
+        "CD19", "CD79A", "IGKC", "IGHG1", "IGHA1", "JCHAIN",
+        "CEACAM5", "CEACAM6", "REG4", "FABP1", "CA2", "LCN2", "OLFM4",
+        "LGR5", "ASCL2"
+      ],
+      "note": "Requires checking gene availability in raw data before use"
+    },
+
+    "morphology_predictable": {
+      "name": "Morphology-Predictable Panel",
+      "description": "Genes expected to be predictable from H&E morphology based on cell type specificity",
+      "selection_method": "literature_hypothesis",
+      "size": 25,
+      "rationale": "These genes mark distinct cell types visible in H&E (epithelia, stroma, immune)",
+      "genes": [
+        "EPCAM", "KRT8", "KRT20", "MUC12",
+        "VIM", "COL1A1", "COL3A1", "DES",
+        "CEACAM5", "CEACAM6", "LCN2",
+        "IGKC", "IGHG1", "IGHA1", "JCHAIN", "CD74",
+        "TAGLN", "ACTB", "TMSB4X", "TMSB10",
+        "FTH1", "FTL", "B2M", "S100A6", "CD24"
+      ],
+      "note": "Subset of expression_50 that have biological rationale for H&E predictability"
+    },
+
+    "mitochondrial": {
+      "name": "Mitochondrial Panel",
+      "description": "Mitochondrial genes - control panel (expected low morphology correlation)",
+      "selection_method": "gene_prefix_MT",
+      "size": 10,
+      "genes": [
+        "MT-ATP6", "MT-ND4", "MT-CO3", "MT-CO2", "MT-CYB",
+        "MT-ND3", "MT-ND4L", "MT-ND2", "MT-ND1", "MT-ND5"
+      ],
+      "note": "Negative control - mitochondrial content varies by metabolism, not morphology"
+    },
+
+    "housekeeping": {
+      "name": "Housekeeping Panel",
+      "description": "Housekeeping genes - control panel (expected ubiquitous expression)",
+      "selection_method": "literature_curated",
+      "size": 8,
+      "genes": [
+        "ACTB", "GAPDH", "B2M", "TMSB4X", "TMSB10", "EEF1G", "CFL1", "HSPA8"
+      ],
+      "note": "Ubiquitously expressed - baseline for comparison"
+    }
+  },
+
+  "overlap_analysis": {
+    "expression_50_in_crc_immune": [
+      "EPCAM", "KRT8", "MUC12", "VIM", "DES", "COL1A1", "COL1A2", "COL3A1", "TAGLN",
+      "IGKC", "IGHG1", "IGHA1", "JCHAIN", "CEACAM5", "CEACAM6", "LCN2", "OLFM4"
+    ],
+    "expression_50_missing_from_crc_immune": [
+      "MT-ATP6", "MT-ND4", "MT-CO3", "MT-CO2", "MT-CYB", "MT-ND3", "MT-ND4L", "MT-ND2",
+      "MT-ND1", "MT-ND5", "TMSB4X", "FTH1", "PIGR", "ACTB", "TMSB10", "LCN2", "B2M",
+      "OAZ1", "PHGR1", "S100A6", "FTL", "EEF1G", "PYGB", "TSPAN8", "S100A10", "CD24",
+      "CST3", "IGHM", "CFL1", "SYNGR2", "HSPA8", "CD74", "FCGBP", "LGALS3"
+    ],
+    "crc_immune_not_in_expression_50": [
+      "KRT18", "KRT19", "KRT20", "CDH1", "MUC2", "ACTA2", "FAP",
+      "CD3D", "CD3E", "CD4", "CD8A", "FOXP3", "CD68", "CD163", "CD14", "ITGAM",
+      "CD19", "CD79A", "REG4", "FABP1", "CA2", "LGR5", "ASCL2"
+    ]
+  },
+
+  "per_gene_reporting": {
+    "description": "For each training run, report per-gene metrics for interpretability",
+    "metrics": ["pearson_r", "spearman_rho", "mse"],
+    "grouping": ["by_panel", "by_category"],
+    "visualization": "heatmap of gene × metric"
+  }
+}

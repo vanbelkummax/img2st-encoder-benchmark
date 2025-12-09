@@ -1,0 +1,44 @@
+# Light Concat Configuration: DenseNet + DINOv2 at 256px only
+# Tests: How much gain comes from encoder diversity vs. broader context?
+
+experiment:
+  name: concat_256_only
+  description: |
+    Concatenates DenseNet (1024d) + DINOv2 (1536d) features at 256px scale only.
+    Total: 2560d (vs 5120d for full 4-encoder concat).
+    Tests whether encoder diversity alone provides significant gains.
+
+features:
+  encoders:
+    - name: densenet_imagenet
+      scale: 256
+      dim: 1024
+      path: features/densenet_fm_features.npz
+    - name: dinov2_giant
+      scale: 256
+      dim: 1536
+      path: features/dinov2_features.npz
+
+  total_dim: 2560
+  concat_order: [densenet_256, dinov2_256]
+  normalize: true  # StandardScaler
+
+model:
+  type: ridge
+  alpha: 1.0
+
+evaluation:
+  method: loocv  # Leave-one-patient-out
+  patients: [P1, P2, P5]
+  metrics:
+    primary: [mse, ssim_st]
+    secondary: [pearson_r, spearman_rho]
+
+output:
+  csv: results/concat_256only_eval_18k.csv
+  summary: results/concat_256only_summary.txt
+
+notes: |
+  Expected result: If 256-only concat approaches all-concat performance,
+  then encoder diversity matters more than spatial context.
+  If large gap exists, broader context (512px) is the key driver.

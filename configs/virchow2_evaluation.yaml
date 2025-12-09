@@ -1,0 +1,96 @@
+# Virchow2 Pathology Foundation Model Evaluation Config
+# Status: READY TO RUN (access granted 2024-11-27)
+
+model:
+  name: Virchow2
+  source: paige-ai/Virchow2
+  architecture: ViT-H/14
+  params: 632M
+  embedding_dim: 2560  # 1280 class + 1280 mean patch
+  input_size: 224
+  training_data: 3.1M H&E WSIs (MSK)
+  magnifications: [2.0, 1.0, 0.5, 0.25]  # µm/pixel (includes Visium HD scale!)
+
+extraction:
+  script: scripts/extract_virchow2_features.py
+  scales: [256, 512]
+  outputs:
+    - features/virchow2_256_features.npz  # 2560-d
+    - features/virchow2_512_features.npz  # 2560-d (context)
+  batch_size: 16
+  device: cuda
+  precision: fp16  # Recommended by authors
+
+evaluation:
+  # Compare against current best
+  baselines:
+    - name: DenseNet-256
+      dim: 1024
+      mean_r: 0.344
+      genes_r_gt_0.8: 54
+
+    - name: DINOv2-256
+      dim: 1536
+      mean_r: 0.357
+      genes_r_gt_0.8: 38
+
+    - name: All-Concat (current best)
+      dim: 5120
+      mean_r: 0.430
+      genes_r_gt_0.8: 494
+
+  # Virchow2 experiments to run
+  experiments:
+    - name: virchow2_256
+      features: [virchow2_256]
+      dim: 2560
+      hypothesis: "Pathology FM should outperform generic encoders"
+
+    - name: virchow2_512
+      features: [virchow2_512]
+      dim: 2560
+      hypothesis: "Multi-mag training may handle context better"
+
+    - name: virchow2_concat
+      features: [virchow2_256, virchow2_512]
+      dim: 5120
+      hypothesis: "Multi-scale Virchow2 alone"
+
+    - name: all_pathology_concat
+      features: [densenet_256, dinov2_256, virchow2_256, densenet_512, dinov2_512, virchow2_512]
+      dim: 7680  # 1024 + 1536 + 2560 + 1024 + 1536 + 2560
+      hypothesis: "Full ensemble with pathology FM"
+
+  metrics:
+    - pearson_r
+    - mse
+    - ssim_st
+
+  output: results/virchow2_evaluation.csv
+
+key_questions:
+  1: "Does Virchow2 improve mean r over DINOv2?"
+  2: "Does Virchow2 preserve high-r tail (genes r>0.8)?"
+  3: "Which gene categories benefit most from pathology FM?"
+  4: "Does Virchow2 fix the immune gene problem (-2.9% with current concat)?"
+  5: "Is Virchow2 + DINOv2 concat better than either alone?"
+
+run_instructions: |
+  # Step 1: Extract Virchow2 features (256px)
+  python scripts/extract_virchow2_features.py --scale 256 --output features/virchow2_256_features.npz
+
+  # Step 2: Extract Virchow2 features (512px context)
+  python scripts/extract_virchow2_features.py --scale 512 --output features/virchow2_512_features.npz
+
+  # Step 3: Run evaluation
+  python scripts/evaluate_virchow2.py --config configs/virchow2_evaluation.yaml
+
+citation: |
+  @article{zimmermann2024virchow2,
+    title={Virchow2: Scaling Self-Supervised Mixed Magnification Models in Pathology},
+    author={Zimmermann, E. and Vorontsov, E. et al.},
+    journal={arXiv preprint arXiv:2408.00738},
+    year={2024}
+  }
+
+license: CC-BY-NC-ND-4.0 (non-commercial research only)

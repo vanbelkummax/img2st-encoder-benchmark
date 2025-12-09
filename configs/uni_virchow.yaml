@@ -1,0 +1,95 @@
+# UNI/Virchow Pathology Foundation Model Configuration
+# PLACEHOLDER - Requires model access approval
+
+experiment:
+  name: pathology_foundation_models
+  description: |
+    Evaluate pathology-specific foundation models for ST prediction.
+    UNI (Chen et al.) and Virchow (Microsoft) are specialized for H&E analysis.
+    Hypothesis: Pathology FMs may preserve high-r tail better than generic DINO.
+  status: pending_access  # Waiting for HuggingFace approval
+
+features:
+  encoders:
+    # UNI - Universal pathology encoder from Chen et al.
+    - name: uni
+      source: MahmoodLab/UNI
+      dim: 1024
+      input_size: 224
+      architecture: ViT-L/14
+      requires_approval: true
+      path: features/uni_features.npz  # To be generated
+
+    # Virchow - Microsoft pathology foundation model
+    - name: virchow
+      source: paige-ai/Virchow
+      dim: 1280
+      input_size: 224
+      architecture: ViT-H/14
+      requires_approval: true
+      path: features/virchow_features.npz  # To be generated
+
+  # Planned concat configurations
+  concat_configs:
+    - name: uni_256
+      encoders: [uni]
+      scale: 256
+      total_dim: 1024
+
+    - name: virchow_256
+      encoders: [virchow]
+      scale: 256
+      total_dim: 1280
+
+    - name: uni_virchow_concat
+      encoders: [uni, virchow]
+      scale: 256
+      total_dim: 2304
+
+    - name: all_pathology_concat
+      encoders: [uni, virchow, densenet_imagenet, dinov2_giant]
+      scales: [256, 512]
+      description: Full pathology + generic ensemble
+
+pipeline:
+  # Step 1: Extract features (after access granted)
+  extraction:
+    script: scripts/extract_features.py
+    encoders: [uni, virchow]
+    scales: [256, 512]
+    batch_size: 16
+    device: cuda
+
+  # Step 2: Evaluate
+  evaluation:
+    script: scripts/compare_encoders.py
+    output: results/pathology_fm_comparison.csv
+
+# Resource requirements
+resources:
+  gpu_memory: 16GB  # Virchow-H requires more VRAM
+  disk: 5GB  # For weight downloads
+
+# Access instructions
+access:
+  uni:
+    url: https://huggingface.co/MahmoodLab/UNI
+    license: Research use only
+    note: Request access via HuggingFace
+
+  virchow:
+    url: https://huggingface.co/paige-ai/Virchow
+    license: Research use only
+    note: Request access via HuggingFace
+
+# Key questions to answer
+questions:
+  - Do pathology FMs improve overall mean r?
+  - Do they preserve the high-r tail (genes r>0.8)?
+  - Which gene categories benefit most?
+  - Is UNI+Virchow concat better than either alone?
+
+notes: |
+  Priority: HIGH - Pathology FMs may solve the DINO tail-shrink problem.
+  Current best: All-concat (5120d) achieves 494 genes r>0.8.
+  Goal: Maintain or exceed this with pathology-specialized features.
