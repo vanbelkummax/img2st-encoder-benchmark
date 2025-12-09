@@ -6,6 +6,8 @@ Benchmark comparing image encoders for predicting spatial gene expression from H
 
 **Why it matters**: Spatial transcriptomics is expensive. Predicting expression from standard histology could unlock molecular insights from millions of existing slides.
 
+**What's here**: Full training pipeline, model architecture, encoder comparison scripts, and baseline methods.
+
 ---
 
 ## How It Works
@@ -84,29 +86,58 @@ git clone https://github.com/vanbelkummax/img2st-encoder-benchmark.git
 cd img2st-encoder-benchmark
 pip install -r requirements.txt
 
-# Regenerate figures
+# Regenerate figures from results
 python scripts/generate_figures.py
+
+# Run encoder comparison (requires extracted features)
+python scripts/fast_encoder_comparison.py
+
+# Train model (requires preprocessed Visium HD data)
+python scripts/train_crc_aligned.py --data_dir /path/to/data --output_dir weights/
 ```
 
-*Tested with Python 3.10+, matplotlib 3.8, numpy 1.26.*
+*Tested with Python 3.10+, PyTorch 2.0+, timm, matplotlib.*
 
-This creates `figures/encoder_comparison.png`, `figures/encoder_comparison_grouped.png`, etc.
+**Note**: Training and feature extraction scripts contain example paths that need to be modified for your system.
 
 ---
 
-## What's Included (and What's Not)
+## Repository Structure
 
-**This repo contains:**
-- Aggregated LOOCV results (`results/encoder_loocv_comparison.json`)
-- Per-gene metrics (`figures/spatial/metrics_summary_P5.json`)
-- Figure generation script (`scripts/generate_figures.py`)
-- Static spatial prediction figures
+```
+├── model/                    # Img2ST-Net architecture
+│   ├── model.py              # U-Net blocks, Spatial GCN, attention
+│   └── model_extended.py     # MultiBranch predictor with contrastive loss
+│
+├── scripts/
+│   ├── train_*.py            # Training scripts (CRC aligned, 8μm, LOOCV)
+│   ├── extract_*.py          # Feature extraction (Virchow2, multiscale, etc.)
+│   ├── fast_encoder_comparison.py   # Vectorized Ridge regression benchmark
+│   ├── generate_figures.py   # Reproduce paper figures
+│   ├── baselines/            # FMH2ST, LOKI, PathoDuet comparisons
+│   └── preprocessing/        # Data completion methods
+│
+├── configs/                  # Encoder configs, gene panels
+├── results/                  # LOOCV metrics
+└── figures/                  # Generated visualizations
+```
+
+---
+
+## What's Included
+
+| Category | Contents |
+|----------|----------|
+| **Model** | Full Img2ST-Net architecture (U-Net, Spatial GCN, contrastive loss) |
+| **Training** | `train_crc_aligned.py`, `train_loocv.py`, `train_8um.py` |
+| **Feature Extraction** | Virchow2, UNI, H-optimus, multiscale context |
+| **Evaluation** | Fast vectorized encoder comparison, per-gene metrics |
+| **Baselines** | FMH2ST, LOKI, PathoDuet integration scripts |
+| **Results** | LOOCV metrics, spatial predictions, figure generation |
 
 **Not included:**
 - Raw Visium HD data (requires 10x Genomics access)
-- Full training pipeline (see [Img2ST-Net](https://github.com/hrlblab/Img2ST-Net))
-
-This repo lets you **inspect the LOOCV results and regenerate the figures**. Training code and raw Visium HD data live elsewhere—this is a results artifact, not a training framework.
+- Pre-trained encoder weights (download from original sources)
 
 ---
 
